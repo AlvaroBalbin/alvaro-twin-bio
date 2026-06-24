@@ -10,8 +10,8 @@
 <meta property="og:type" content="website" />
 <!--
   Link-in-bio + live AI clone. MVP.
-  EDIT: change NAME, ROLE, BIO, the SOCIAL hrefs, and the LINK CARDS below.
-  The clone is the real one (data-twin="alvaro"). Tap the launcher to talk, voice or text.
+  The talking twin is the REAL one (data-twin="alvaro"), it has 533 knowledge chunks.
+  EDIT: change NAME, ROLE, BIO, the social hrefs, the link cards, and the roster twins below.
 -->
 <style>
   :root{
@@ -40,11 +40,8 @@
   .dots{letter-spacing:2px;font-size:18px;line-height:1;padding-bottom:5px;}
 
   .avatar-wrap{display:flex;justify-content:center;margin-top:26px;}
-  .avatar{
-    width:120px;height:120px;border-radius:50%;
-    background:linear-gradient(140deg,#6a6af0,#9b8cff 52%,#f3a6c8);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:44px;font-weight:700;letter-spacing:1px;
+  .avatar-img{
+    width:120px;height:120px;border-radius:50%;object-fit:cover;background:#eee;
     box-shadow:0 12px 34px rgba(91,91,214,0.30), 0 0 0 6px #fff;
   }
 
@@ -67,7 +64,9 @@
   .socials svg{width:24px;height:24px;}
   .socials a.boxed{border:1.5px solid var(--ink);border-radius:7px;width:34px;height:34px;}
 
-  .cards{margin-top:18px;display:flex;flex-direction:column;gap:14px;}
+  .section-label{margin:28px 4px 2px;font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);}
+
+  .cards{margin-top:14px;display:flex;flex-direction:column;gap:14px;}
   .card{
     display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;
     background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;
@@ -79,20 +78,19 @@
     width:56px;height:56px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
     background:#f1f0fb;color:var(--accent);font-size:22px;
   }
+  .tw-av{width:54px;height:54px;border-radius:50%;flex:none;object-fit:cover;background:#eee;}
   .card .text{flex:1;min-width:0;}
   .card .t{font-size:16px;font-weight:700;line-height:1.25;}
   .card .s{font-size:14px;color:var(--muted);margin-top:3px;line-height:1.3;}
+  .badge{font-size:11px;font-weight:700;color:#3ecf8e;display:inline-flex;align-items:center;gap:5px;margin-top:4px;}
+  .badge .d{width:6px;height:6px;border-radius:50%;background:#3ecf8e;}
   .chev{color:#c7c7c7;flex:none;font-size:20px;}
 
   .clone-hint{
     margin-top:30px;display:flex;align-items:center;gap:12px;
     background:linear-gradient(180deg,#fff, #fbfaff);border:1px solid var(--line);border-radius:16px;padding:14px 16px;
   }
-  .clone-hint .mini{
-    width:42px;height:42px;border-radius:50%;flex:none;
-    background:linear-gradient(140deg,#6a6af0,#f3a6c8);color:#fff;font-weight:700;
-    display:flex;align-items:center;justify-content:center;font-size:15px;
-  }
+  .clone-hint .mini{width:42px;height:42px;border-radius:50%;flex:none;object-fit:cover;background:#eee;}
   .clone-hint .ch-text{font-size:14px;line-height:1.35;}
   .clone-hint .ch-text b{display:block;font-size:14px;}
   .clone-hint .ch-text span{color:var(--muted);}
@@ -110,8 +108,7 @@
     </div>
 
     <div class="avatar-wrap">
-      <!-- swap for <img src="..." style="width:120px;height:120px;border-radius:50%;object-fit:cover;box-shadow:0 12px 34px rgba(91,91,214,.3),0 0 0 6px #fff"> when you have a photo -->
-      <div class="avatar">AB</div>
+      <img class="avatar-img" alt="Alvaro Balbin" src="https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/public-assets/twin-assets/11985efd-fb98-4ede-9152-8f596e8fae9c/b8de3cea-79b1-4b7a-acb0-89589f0a89ab/avatar-1778941767474.png" />
     </div>
 
     <div class="status"><span class="pill"><span class="dot"></span> Available to talk</span></div>
@@ -136,7 +133,6 @@
     </div>
 
     <div class="cards">
-
       <a class="card" href="https://socialgravity.ai" target="_blank" rel="noopener">
         <div class="thumb">&#10022;</div>
         <div class="text">
@@ -145,7 +141,6 @@
         </div>
         <span class="chev">&#8250;</span>
       </a>
-
       <a class="card" href="#" target="_blank" rel="noopener">
         <div class="thumb">&#9658;</div>
         <div class="text">
@@ -154,7 +149,6 @@
         </div>
         <span class="chev">&#8250;</span>
       </a>
-
       <a class="card" href="#" target="_blank" rel="noopener">
         <div class="thumb">&#128197;</div>
         <div class="text">
@@ -163,12 +157,43 @@
         </div>
         <span class="chev">&#8250;</span>
       </a>
+    </div>
 
-      <a class="card" href="#" target="_blank" rel="noopener">
-        <div class="thumb">&#127908;</div>
+    <div class="section-label">More twins you can talk to</div>
+    <div class="cards">
+
+      <a class="card" href="https://socialgravity.ai/miguel" target="_blank" rel="noopener">
+        <img class="tw-av" alt="Miguel" src="https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/public-assets/twin-assets/6f429a01-0609-4bb1-9cbf-deefe3c9212e/1457d076-4b91-4140-9fc5-8ec19b76cc50/avatar-rehosted.jpg" />
         <div class="text">
-          <div class="t">My writing and posts</div>
-          <div class="s">What I am thinking about lately</div>
+          <div class="t">Miguel Garceran</div>
+          <div class="badge"><span class="d"></span> Live twin</div>
+        </div>
+        <span class="chev">&#8250;</span>
+      </a>
+
+      <a class="card" href="https://socialgravity.ai/sarah-finegan" target="_blank" rel="noopener">
+        <img class="tw-av" alt="Sarah" src="https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/public-assets/twin-assets/6b19eaf4-c3de-4bdb-b860-4aff72bae95c/e2563a6e-4f00-484c-9f99-546e532ab999/avatar-1779889816353.png" />
+        <div class="text">
+          <div class="t">Sarah Finegan</div>
+          <div class="badge"><span class="d"></span> Live twin</div>
+        </div>
+        <span class="chev">&#8250;</span>
+      </a>
+
+      <a class="card" href="https://socialgravity.ai/jatin-chhanwal" target="_blank" rel="noopener">
+        <img class="tw-av" alt="Jatin" src="https://api.socialgravity.ai/storage/v1/object/public/public-assets/twin-assets/3c171a64-4c73-41ab-9c37-9b24a6ac723b/f8513f1e-ee90-4ab8-a6c1-7fa12a13664d/avatar.png" />
+        <div class="text">
+          <div class="t">Jatin Chhanwal</div>
+          <div class="badge"><span class="d"></span> Live twin</div>
+        </div>
+        <span class="chev">&#8250;</span>
+      </a>
+
+      <a class="card" href="https://socialgravity.ai/ryan-chi-mr-rc" target="_blank" rel="noopener">
+        <img class="tw-av" alt="Ryan" src="https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/public-assets/twin-assets/b79643c5-d76f-43c4-b829-a07d80be4da0/34ec8820-fb0a-4d95-915b-ee657d2297f7/avatar-rehosted.jpg" />
+        <div class="text">
+          <div class="t">Ryan Chi</div>
+          <div class="badge"><span class="d"></span> Live twin</div>
         </div>
         <span class="chev">&#8250;</span>
       </a>
@@ -176,10 +201,10 @@
     </div>
 
     <div class="clone-hint">
-      <div class="mini">AB</div>
+      <img class="mini" alt="Alvaro" src="https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/public-assets/twin-assets/11985efd-fb98-4ede-9152-8f596e8fae9c/b8de3cea-79b1-4b7a-acb0-89589f0a89ab/avatar-1778941767474.png" />
       <div class="ch-text">
         <b>Talk to my twin</b>
-        <span>Tap the button in the corner and ask it anything about me. Voice or text.</span>
+        <span>Tap my face in the corner and ask it anything about me. Voice or text.</span>
       </div>
     </div>
 
@@ -187,7 +212,7 @@
 
   </div>
 
-  <!-- THE LIVE CLONE. Real twin, anonymous, works from any origin. -->
+  <!-- THE LIVE CLONE. Real twin (alvaro), anonymous, works from any origin. -->
   <script src="https://socialgravity.ai/twin.js" data-twin="alvaro" data-label="Talk to Alvaro" async></script>
 </body>
 </html>
