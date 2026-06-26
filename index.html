@@ -8,10 +8,499 @@
     <meta property="og:title" content="Alvaro Balbin" />
     <meta property="og:description" content="Talk to my AI twin, voice or text, anytime." />
     <meta property="og:type" content="website" />
-    <script type="module" crossorigin src="./assets/index-pEQasTZn.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-ZdSJ0cnw.css">
+    <style>
+      :root {
+        --canvas: #fbfbf9; --surface: #ffffff; --ink: #14150f; --ink-muted: #6b6f63;
+        --line: #ececec; --accent: #945cd6; --accent-contrast: #ffffff; --maxw: 392px;
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { margin: 0; padding: 0; background: var(--canvas); color: var(--ink);
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif; }
+      body { min-height: 100dvh; display: flex; justify-content: center; }
+      .page { width: 100%; max-width: var(--maxw); padding: 34px 20px calc(150px + env(safe-area-inset-bottom)); }
+      .hero { text-align: center; padding: 8px 0 4px; }
+      .avatar { width: 104px; height: 104px; border-radius: 50%; object-fit: cover;
+        border: 1px solid var(--line); background: var(--surface); margin: 0 auto 16px; display: block; }
+      .name { font-size: 25px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+      .tagline { color: var(--accent); font-size: 14px; font-weight: 600; margin: 7px 0 0;
+        font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: .01em; }
+      .bio { color: var(--ink-muted); font-size: 15px; line-height: 1.5; margin: 14px auto 0; max-width: 34ch;
+        font-family: ui-sans-serif, system-ui, sans-serif; }
+      .links { margin: 28px 0 0; display: flex; flex-direction: column; gap: 11px; }
+      .links a { display: block; padding: 15px 18px; border-radius: 16px; background: var(--surface);
+        border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+        box-shadow: 0 1px 2px rgba(20,21,15,0.04); transition: transform .08s ease, box-shadow .15s ease;
+        font-family: ui-sans-serif, system-ui, sans-serif; }
+      .links a:active { transform: scale(0.985); box-shadow: 0 1px 1px rgba(20,21,15,0.03); }
+      .links .lab { font-size: 15px; font-weight: 600; }
+      .links .sub { font-size: 13px; color: var(--ink-muted); margin-top: 2px; }
+      .log { margin: 20px 0 0; display: flex; flex-direction: column; gap: 8px;
+        font-family: ui-sans-serif, system-ui, sans-serif; }
+      .msg { max-width: 85%; padding: 9px 13px; border-radius: 13px; font-size: 14px; line-height: 1.35; }
+      .msg.visitor { align-self: flex-end; background: var(--accent); color: var(--accent-contrast); }
+      .msg.twin { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); }
+
+      .dock { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+        padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+        background: linear-gradient(to top, var(--canvas) 62%, rgba(251,251,249,0)); }
+      .dock-inner { width: 100%; max-width: var(--maxw); font-family: ui-sans-serif, system-ui, sans-serif; }
+      .caption { min-height: 18px; text-align: center; color: var(--ink); font-size: 14px;
+        opacity: 0; transition: opacity .2s ease; margin: 0 0 10px; }
+      .caption.show { opacity: 1; }
+      .talk { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+        padding: 16px 18px; border-radius: 18px; border: none; background: var(--accent);
+        color: var(--accent-contrast); font-size: 15px; font-weight: 650; cursor: pointer;
+        box-shadow: 0 6px 20px rgba(148,92,214,0.28); }
+      .talk[data-state="connecting"] { opacity: .75; }
+      .talk.mic-on { background: #c7402e; box-shadow: 0 6px 20px rgba(199,64,46,0.3); }
+      .orb { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-contrast); opacity: .9; }
+      .talk.mic-on .orb { animation: pulse 1.1s infinite ease-in-out; }
+      @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .4; } }
+      .ptitle { text-align: center; font-size: 12px; color: var(--ink-muted); margin: 9px 0 0; }
+      .textform { display: flex; gap: 8px; margin-top: 11px; }
+      .textform input { flex: 1; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--line);
+        background: var(--surface); color: var(--ink); font-size: 15px; outline: none; }
+      .textform button { padding: 0 16px; border-radius: 14px; border: 1px solid var(--line);
+        background: var(--surface); color: var(--ink); font-size: 14px; cursor: pointer; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <main class="page">
+      <section class="hero">
+        <img class="avatar" id="avatar" alt="" onerror="this.style.visibility='hidden'" />
+        <h1 class="name" id="name">&nbsp;</h1>
+        <p class="tagline" id="tagline"></p>
+        <p class="bio" id="bio"></p>
+      </section>
+      <nav class="links" id="links"></nav>
+      <div class="log" id="log"></div>
+    </main>
+
+    <div class="dock" id="dock" data-state="idle">
+      <div class="dock-inner">
+        <p class="caption" id="caption"></p>
+        <button class="talk" id="talkBtn" type="button"><span class="orb"></span><span id="talkLabel">Talk to me</span></button>
+        <form class="textform" id="textForm" autocomplete="off">
+          <input id="textInput" type="text" placeholder="…or type a message" />
+          <button type="submit">Send</button>
+        </form>
+        <p class="ptitle" id="ptitle"></p>
+      </div>
+    </div>
+
+    <script type="module">
+import { Room, RoomEvent, Track } from "https://esm.sh/livekit-client@2.17.3";
+
+// Bio runtime config. Point AGENT_ID at any twin; the page renders that twin's
+// twin_pages + twin_page_links data (display name, tagline, bio, avatar, theme,
+// links) at runtime. FALLBACK is embedded so the page still renders if the data
+// fetch fails or is slow (it is overwritten by the live fetch when that lands).
+const CONFIG = {
+  SUPABASE_URL: "https://ootcwmipvdlyvjcvdtpo.supabase.co",
+  SUPABASE_ANON:
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vdGN3bWlwdmRseXZqY3ZkdHBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDI4NDMsImV4cCI6MjA3OTU3ODg0M30.YCHLGEVvDeZEX1RKBGTxGRIQ8AxUxfVozUbVLEKFAxc",
+  AGENT_ID: "b8de3cea-79b1-4b7a-acb0-89589f0a89ab",
+  GREETING_TEXT: "Hey, good to see you here!",
+  // Embedded fallback render data (Alvaro). The live twin_pages fetch replaces it.
+  FALLBACK: {
+    display_name: "Alvaro Balbin",
+    tagline: "Cofounder and CTO, SocialGravity",
+    bio: "I build AI voice twins. The one on this page is mine, scraped and trained on me. Talk to it, ask it anything.",
+    avatar_url: "https://ootcwmipvdlyvjcvdtpo.supabase.co/storage/v1/object/public/twin-page-assets/alvaro/avatar.png",
+    prompt_title: "Talk to Alvaro",
+    prompt_sub: "Voice or text, ask me anything",
+    palette: { canvas: "#fbfbf9", surface: "#ffffff", ink: "#14150f", inkMuted: "#6b6f63", line: "#ececec", accent: "#945cd6" },
+    links: [
+      { label: "Make your own AI twin", subtitle: "Scrape or talk yourself into a clone", url: "https://socialgravity.ai", kind: "product" },
+      { label: "alvarobalbin.com", subtitle: "My personal site", url: "https://alvarobalbin.com", kind: "link" },
+      { label: "X / Twitter", subtitle: null, url: "https://x.com/elalvarobalbin", kind: "social" },
+      { label: "LinkedIn", subtitle: null, url: "https://www.linkedin.com/in/alvaro-balbin-ugalde-68b237318", kind: "social" },
+      { label: "GitHub", subtitle: null, url: "https://github.com/AlvaroBalbin", kind: "social" },
+      { label: "Instagram", subtitle: null, url: "https://instagram.com/alvaro_balbin", kind: "social" },
+    ],
+  },
+};
+
+
+// twin-voice.js
+// Self-contained first-party voice runtime for a SocialGravity twin, with the
+// INSTANT GREETING built in. No build step: imports livekit-client from a CDN.
+//
+// The instant greeting is the same mechanism shipped on the website
+// (useCartesiaSandbox): pre-render the opener once in the twin's OWN cloned
+// voice, confirm it is playable in this browser, tell the worker (via
+// livekit-token -> room metadata: skip_spoken_greeting) NOT to speak its own
+// opener, and play the cached clip client-side the instant we connect. The
+// worker records the clip's exact line in chat_ctx so it doesn't re-greet.
+//
+// SAFETY INVARIANT (same as the website): the skip flag is sent ONLY when the
+// clip is confirmed playable. No playable clip => no flag => the worker greets
+// itself exactly as before. So the instant path can never leave the visitor in
+// silence; worst case it falls back to the normal worker greeting.
+
+
+
+class TwinVoice {
+  /**
+   * @param {object} cfg  { SUPABASE_URL, SUPABASE_ANON, AGENT_ID, GREETING_TEXT }
+   * @param {object} handlers  optional callbacks:
+   *   onStatus(state)            "idle"|"warming"|"connecting"|"live"|"error"
+   *   onCaption(text|null)       live caption (twin speech / greeting line)
+   *   onMessage({role,text})     committed transcript line
+   *   onMicState(bool)           visitor mic on/off
+   *   onError(message)
+   */
+  constructor(cfg, handlers = {}) {
+    this.cfg = cfg;
+    this.h = handlers;
+    this.room = null;
+    this.jwt = null;
+    this.greetingClip = null; // {url,text} only when CONFIRMED playable
+    this.connectGreetingSkip = false;
+    this.warmed = false;
+    this.audioEl = null; // hidden <audio> the twin's track attaches to
+    this._activeLink = null; // optional page-awareness: the link the visitor is viewing
+  }
+
+  // ---- public API ---------------------------------------------------------
+
+  /** Call on first traffic intent (scroll/touch). Idempotent. Fetches +
+   *  confirms the greeting clip so it's ready before the visitor taps. */
+  async warm() {
+    if (this.warmed) return;
+    this.warmed = true;
+    this._status("warming");
+    await this._ensureSession().catch(() => {});
+    await this._fetchGreetingClip().catch(() => {});
+    this._status(this.room ? "live" : "idle");
+  }
+
+  /** Connect to the twin and start the conversation (call on the visitor's
+   *  tap so mic + audio autoplay are inside a user gesture). */
+  async connect({ withMic = true } = {}) {
+    if (this.room) return;
+    this._status("connecting");
+    try {
+      await this._ensureSession();
+      // If warm() hasn't finished, fetch the clip now (best effort, bounded).
+      if (!this.greetingClip && !this.warmed) await this._fetchGreetingClip().catch(() => {});
+
+      const body = this._tokenBody();
+      // The clip plays only if THIS connection told the worker to skip.
+      this.connectGreetingSkip = !!body.client_greeting;
+
+      const tok = await this._post("livekit-token", body, /*useJwt*/ true);
+      if (!tok?.ok || !tok.token || !tok.url || !tok.room) {
+        throw new Error(tok?.error || "livekit-token failed");
+      }
+
+      const room = new Room({ adaptiveStream: true, dynacast: true });
+      this.room = room;
+
+      // Hidden audio sink for the twin's voice.
+      if (!this.audioEl) {
+        this.audioEl = document.createElement("audio");
+        this.audioEl.autoplay = true;
+        this.audioEl.setAttribute("playsinline", "");
+        this.audioEl.style.display = "none";
+        document.body.appendChild(this.audioEl);
+      }
+
+      room.on(RoomEvent.TrackSubscribed, (track) => {
+        if (track.kind === Track.Kind.Audio) {
+          track.attach(this.audioEl);
+          this.audioEl.play?.().catch(() => {});
+        }
+      });
+      room.on(RoomEvent.TranscriptionReceived, (segs, participant) => {
+        // Ignore our own (visitor) STT echo; show the twin's words.
+        const mine = participant?.identity === room.localParticipant?.identity;
+        if (mine) return;
+        const text = (segs || []).map((s) => s.text).join(" ").trim();
+        if (text) this._caption(text);
+      });
+      room.on(RoomEvent.Disconnected, () => {
+        this._status("idle");
+        this.room = null;
+      });
+
+      await room.connect(tok.url, tok.token);
+      try { await room.startAudio(); } catch { /* unlocked by the tap */ }
+
+      // INSTANT GREETING: play the cached cloned-voice clip the moment we
+      // connect, but ONLY if the worker was told to skip (else it greets
+      // itself and we'd double up).
+      if (this.connectGreetingSkip && this.greetingClip?.url) {
+        const a = new Audio(this.greetingClip.url);
+        a.setAttribute("playsinline", "");
+        const line = this.greetingClip.text;
+        this._caption(line);
+        a.addEventListener("ended", () => {
+          this._caption(null);
+          this.h.onMessage?.({ role: "twin", text: line });
+        }, { once: true });
+        a.addEventListener("error", () => this._caption(null), { once: true });
+        a.play().catch(() => { /* if blocked, worker still has the chat_ctx line */ });
+      }
+
+      if (withMic) await this.enableMic().catch(() => {});
+      this._status("live");
+    } catch (e) {
+      this._status("error");
+      this.h.onError?.(String(e?.message || e));
+      this.room = null;
+    }
+  }
+
+  /** Turn the visitor's mic on. On iOS in-app browsers this may be blocked;
+   *  callers can fall back to text or a native-recorder push-to-talk. */
+  async enableMic() {
+    if (!this.room) return false;
+    try {
+      await this.room.localParticipant.setMicrophoneEnabled(true);
+      this.h.onMicState?.(true);
+      return true;
+    } catch (e) {
+      this.h.onMicState?.(false);
+      this.h.onError?.("mic blocked: " + String(e?.message || e));
+      return false;
+    }
+  }
+
+  async muteMic() {
+    if (!this.room) return;
+    try { await this.room.localParticipant.setMicrophoneEnabled(false); } catch { /* noop */ }
+    this.h.onMicState?.(false);
+  }
+
+  /** Send a typed message over the data channel (text mode). */
+  sendText(text) {
+    const t = (text || "").trim();
+    if (!t || !this.room) return;
+    const payload = JSON.stringify({ type: "user_text", text: t, ts: Date.now() });
+    this.room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: true });
+    this.h.onMessage?.({ role: "visitor", text: t });
+  }
+
+  /** Optional page-awareness: tell the twin which link the visitor is viewing
+   *  so retrieval can lean into that destination (Layer 2 on the worker). */
+  setActiveLink(linkId) {
+    this._activeLink = linkId || null;
+    if (this.room) {
+      const payload = JSON.stringify({ type: "active_link", link_id: this._activeLink, ts: Date.now() });
+      try { this.room.localParticipant.publishData(new TextEncoder().encode(payload), { reliable: true }); } catch { /* noop */ }
+    }
+  }
+
+  async disconnect() {
+    try { await this.room?.disconnect(); } catch { /* noop */ }
+    this.room = null;
+    this._caption(null);
+    this._status("idle");
+  }
+
+  // ---- internals ----------------------------------------------------------
+
+  _tokenBody() {
+    return {
+      agent_id: this.cfg.AGENT_ID,
+      source: "bio",
+      ...(this._activeLink ? { active_link_id: this._activeLink } : {}),
+      // Send the skip flag ONLY when the clip is confirmed playable.
+      ...(this.greetingClip
+        ? { client_greeting: true, client_greeting_text: this.greetingClip.text }
+        : {}),
+    };
+  }
+
+  async _ensureSession() {
+    if (this.jwt) return this.jwt;
+    // Reuse an anon session across reloads so we don't mint a new user each time.
+    const cached = sessionStorage.getItem("sg_bio_jwt");
+    if (cached) { this.jwt = cached; return cached; }
+    const r = await fetch(`${this.cfg.SUPABASE_URL}/auth/v1/signup`, {
+      method: "POST",
+      headers: { apikey: this.cfg.SUPABASE_ANON, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const d = await r.json();
+    if (!d?.access_token) throw new Error("anon session failed");
+    this.jwt = d.access_token;
+    try { sessionStorage.setItem("sg_bio_jwt", this.jwt); } catch { /* noop */ }
+    return this.jwt;
+  }
+
+  async _fetchGreetingClip() {
+    if (this.greetingClip) return;
+    const d = await this._post("twin-greeting-clip", { agent_id: this.cfg.AGENT_ID }, /*useJwt*/ false);
+    if (!(d?.ok && d.url && d.text)) return; // no cloned voice / failure -> worker greets
+    const playable = await this._confirmPlayable(d.url);
+    if (playable) this.greetingClip = { url: d.url, text: d.text };
+  }
+
+  _confirmPlayable(url) {
+    return new Promise((resolve) => {
+      let done = false;
+      const fin = (ok) => { if (!done) { done = true; clearTimeout(t); resolve(ok); } };
+      const t = setTimeout(() => fin(false), 3000);
+      try {
+        const a = new Audio();
+        a.preload = "auto";
+        a.muted = true;
+        a.addEventListener("loadeddata", () => fin(true), { once: true });
+        a.addEventListener("canplaythrough", () => fin(true), { once: true });
+        a.addEventListener("error", () => fin(false), { once: true });
+        a.src = url;
+        a.load();
+      } catch { fin(false); }
+    });
+  }
+
+  async _post(fn, body, useJwt) {
+    const bearer = useJwt ? this.jwt : this.cfg.SUPABASE_ANON;
+    const r = await fetch(`${this.cfg.SUPABASE_URL}/functions/v1/${fn}`, {
+      method: "POST",
+      headers: {
+        apikey: this.cfg.SUPABASE_ANON,
+        Authorization: `Bearer ${bearer}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    return r.json();
+  }
+
+  _status(s) { this.h.onStatus?.(s); }
+  _caption(t) { this.h.onCaption?.(t ?? null); }
+}
+
+
+// app.js: fetches the twin's page data (twin_pages + twin_page_links), renders
+// it, applies the theme, and wires the bottom-bar voice dock to the shared
+// TwinVoice runtime. Data-driven, so pointing CONFIG.AGENT_ID at another twin
+// renders that twin's page. Falls back to CONFIG.FALLBACK if the fetch is slow
+// or fails, so the page always renders.
+
+
+
+const $ = (id) => document.getElementById(id);
+
+// ---- render the page from page data --------------------------------------
+function applyTheme(p) {
+  if (!p) return;
+  const r = document.documentElement.style;
+  const pal = p.palette || {};
+  const set = (k, v) => v && r.setProperty(k, v);
+  set("--canvas", pal.canvas); set("--surface", pal.surface); set("--ink", pal.ink);
+  set("--ink-muted", pal.inkMuted); set("--line", pal.line); set("--accent", pal.accent);
+  set("--accent-contrast", pal.accentContrast || "#ffffff");
+}
+
+function render(p) {
+  if (!p) return;
+  applyTheme(p);
+  if (p.avatar_url) { const a = $("avatar"); a.src = p.avatar_url; a.alt = p.display_name || ""; }
+  $("name").textContent = p.display_name || "";
+  $("tagline").textContent = p.tagline || "";
+  $("bio").textContent = p.bio || "";
+  if (p.display_name) document.title = p.display_name;
+  $("talkLabel").textContent = p.prompt_title || "Talk to me";
+  $("ptitle").textContent = p.prompt_sub || "";
+  const wrap = $("links");
+  wrap.innerHTML = "";
+  for (const l of (p.links || [])) {
+    if (l.enabled === false) continue;
+    const a = document.createElement("a");
+    a.href = l.url; a.target = "_blank"; a.rel = "noopener";
+    a.dataset.linkId = l.id || l.label;
+    a.innerHTML = `<div class="lab"></div>${l.subtitle ? '<div class="sub"></div>' : ""}`;
+    a.querySelector(".lab").textContent = l.label || l.url;
+    if (l.subtitle) a.querySelector(".sub").textContent = l.subtitle;
+    wrap.appendChild(a);
+  }
+  wireLinkAwareness();
+}
+
+// Live fetch of the twin's page (replaces the embedded fallback when it lands).
+async function fetchPage() {
+  const base = `${CONFIG.SUPABASE_URL}/rest/v1`;
+  const h = { apikey: CONFIG.SUPABASE_ANON, Authorization: `Bearer ${CONFIG.SUPABASE_ANON}` };
+  try {
+    const pr = await fetch(`${base}/twin_pages?agent_id=eq.${CONFIG.AGENT_ID}&select=id,display_name,tagline,bio,avatar_url,theme&limit=1`, { headers: h });
+    const rows = await pr.json();
+    const row = Array.isArray(rows) ? rows[0] : null;
+    if (!row) return null;
+    const lr = await fetch(`${base}/twin_page_links?page_id=eq.${row.id}&enabled=eq.true&select=id,position,label,subtitle,url,kind&order=position.asc`, { headers: h });
+    const links = await lr.json().catch(() => []);
+    const t = row.theme || {};
+    return {
+      display_name: row.display_name,
+      tagline: row.tagline,
+      bio: row.bio,
+      avatar_url: row.avatar_url,
+      prompt_title: t?.clone?.promptTitle || "Talk to me",
+      prompt_sub: t?.clone?.promptSub || "",
+      palette: t?.theme?.palette || {},
+      links: Array.isArray(links) ? links : [],
+    };
+  } catch { return null; }
+}
+
+// ---- voice dock ----------------------------------------------------------
+const twin = new TwinVoice(CONFIG, {
+  onStatus(s) {
+    const dock = $("dock"); dock.dataset.state = s;
+    $("talkBtn").dataset.state = s;
+    const t = $("talkLabel");
+    if (s === "connecting") t.textContent = "Connecting…";
+    else if (s === "live") t.textContent = "Listening";
+    else t.textContent = (window.__promptTitle || "Talk to me");
+  },
+  onCaption(t) { const c = $("caption"); c.textContent = t || ""; c.classList.toggle("show", !!t); },
+  onMessage({ role, text }) {
+    const li = document.createElement("div");
+    li.className = "msg " + role; li.textContent = text;
+    $("log").appendChild(li); $("log").scrollTop = $("log").scrollHeight;
+  },
+  onMicState(on) { $("talkBtn").classList.toggle("mic-on", on); },
+  onError(m) { console.warn("[twin]", m); },
+});
+
+function wireLinkAwareness() {
+  document.querySelectorAll("a[data-link-id]").forEach((a) => {
+    a.addEventListener("pointerenter", () => twin.setActiveLink(a.dataset.linkId));
+    a.addEventListener("focus", () => twin.setActiveLink(a.dataset.linkId));
+  });
+}
+
+// Warm (clip + worker prewarm) on first traffic intent so the greeting is ready
+// the instant the visitor taps.
+let warmed = false;
+const warm = () => {
+  if (warmed) return; warmed = true;
+  twin.warm();
+  ["pointerdown", "touchstart", "keydown", "scroll"].forEach((e) => window.removeEventListener(e, warm, true));
+};
+["pointerdown", "touchstart", "keydown", "scroll"].forEach((e) =>
+  window.addEventListener(e, warm, e === "scroll" ? { capture: true, passive: true } : true));
+
+$("talkBtn").addEventListener("click", async () => {
+  if ($("dock").dataset.state === "live") { await twin.muteMic(); return; }
+  await twin.connect({ withMic: true });
+});
+
+$("textForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = $("textInput").value; $("textInput").value = "";
+  if (!twin.room) twin.connect({ withMic: false }).then(() => twin.sendText(v));
+  else twin.sendText(v);
+});
+
+// ---- boot: render fallback immediately, then the live data ----------------
+render(CONFIG.FALLBACK);
+window.__promptTitle = CONFIG.FALLBACK.prompt_title;
+fetchPage().then((p) => { if (p) { render(p); window.__promptTitle = p.prompt_title; $("talkLabel").textContent = p.prompt_title; } });
+
+</script>
   </body>
 </html>
