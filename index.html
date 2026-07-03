@@ -3,11 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>My Twin</title>
-    <meta name="description" content="Talk to my AI twin. It knows what I know and sounds like me." />
-    <meta property="og:title" content="My Twin" />
-    <meta property="og:description" content="Talk to my AI twin, voice or text, anytime." />
-    <meta property="og:type" content="website" />
+    <!--
+      No static title / description / Open Graph tags on purpose.
+      These pages are shared as bare Instagram-bio links, and a generic "My Twin"
+      card (with Instagram's fallback placeholder image) looked worse than no card
+      at all. With nothing here for a scraper to grab, the link unfurls as a plain
+      link instead of an ugly preview. Real visitors are unaffected: Home.jsx sets
+      document.title to the creator's name at runtime (crawlers do not run JS).
+    -->
+    <title></title>
     <script type="module" crossorigin src="./assets/index-qqjx3Nl8.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BqIFIRFm.css">
   </head>
